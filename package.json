@@ -1,0 +1,70 @@
+{
+  "name": "agewallet-react-native-sdk",
+  "version": "1.0.0",
+  "description": "AgeWallet age verification SDK for React Native",
+  "main": "dist/expo/index.js",
+  "types": "dist/expo/index.d.ts",
+  "exports": {
+    "./expo": {
+      "types": "./dist/expo/index.d.ts",
+      "import": "./dist/expo/index.js",
+      "require": "./dist/expo/index.js"
+    },
+    "./bare": {
+      "types": "./dist/bare/index.d.ts",
+      "import": "./dist/bare/index.js",
+      "require": "./dist/bare/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "agewallet",
+    "age-verification",
+    "react-native",
+    "expo",
+    "oidc",
+    "pkce"
+  ],
+  "author": "AgeWallet",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/agewallet/agewallet-react-native-sdk.git"
+  },
+  "peerDependencies": {
+    "react-native-keychain": "^8.0.0",
+    "expo-crypto": "^12.0.0 || ^13.0.0 || ^14.0.0",
+    "expo-web-browser": "^12.0.0 || ^13.0.0 || ^14.0.0",
+    "expo-linking": "^6.0.0 || ^7.0.0 || ^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "expo-web-browser": {
+      "optional": true
+    },
+    "expo-linking": {
+      "optional": true
+    },
+    "expo-crypto": {
+      "optional": true
+    },
+    "react-native-inappbrowser-reborn": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/react-native": "^0.72.0",
+    "typescript": "^5.0.0",
+    "expo-crypto": "^14.0.0",
+    "expo-web-browser": "^14.0.0",
+    "expo-linking": "^7.0.0",
+    "react-native-keychain": "^8.2.0"
+  }
+}
