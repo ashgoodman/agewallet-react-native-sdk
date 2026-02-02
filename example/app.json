@@ -15,15 +15,15 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "io.agewallet.sdk.demo",
-      "associatedDomains": ["applinks:agewallet-react-sdk-demo.netlify.app"]
+      "bundleIdentifier": "io.agewallet.sdk.demo.reactnative",
+      "associatedDomains": ["applinks:agewallet-sdk-demo.netlify.app"]
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#6366f1"
       },
-      "package": "io.agewallet.sdk.demo",
+      "package": "io.agewallet.sdk.demo.reactnative",
       "intentFilters": [
         {
           "action": "VIEW",
@@ -31,7 +31,7 @@
           "data": [
             {
               "scheme": "https",
-              "host": "agewallet-react-sdk-demo.netlify.app",
+              "host": "agewallet-sdk-demo.netlify.app",
               "pathPrefix": "/callback"
             }
           ],
