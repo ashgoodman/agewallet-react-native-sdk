@@ -105,9 +105,11 @@ export class AgeWalletCore {
   async handleCallback(url: string): Promise<boolean> {
     const parsed = this.linking.parseUrl(url);
 
-    // Handle errors (including regional exemptions)
+    // Handle errors
     if (parsed.error) {
-      return this.handleError(parsed.error, parsed.error_description, parsed.state);
+      console.error(`[AgeWallet] Authorization error: ${parsed.error} - ${parsed.error_description}`);
+      await this.storage.clearOidcState();
+      return false;
     }
 
     if (!parsed.code || !parsed.state) {
@@ -157,41 +159,6 @@ export class AgeWalletCore {
    */
   async clearVerification(): Promise<void> {
     await this.storage.clearVerification();
-  }
-
-  /**
-   * Handles OIDC errors, including regional exemptions.
-   */
-  private async handleError(
-    error: string,
-    description?: string,
-    state?: string
-  ): Promise<boolean> {
-    // Validate state
-    const storedState = await this.storage.getOidcState();
-    if (!storedState || storedState.state !== state) {
-      console.warn('[AgeWallet] Error received with invalid state');
-      return false;
-    }
-
-    // Check for regional exemption
-    if (error === 'access_denied' && description === 'Region does not require verification') {
-      console.log('[AgeWallet] Regional exemption detected');
-
-      // Store synthetic verification (24h validity)
-      const expiresAt = Date.now() + (24 * 60 * 60 * 1000);
-      await this.storage.setVerification({
-        accessToken: 'region_exempt',
-        expiresAt,
-        isVerified: true,
-      });
-
-      await this.storage.clearOidcState();
-      return true;
-    }
-
-    console.error(`[AgeWallet] OIDC Error: ${error} - ${description}`);
-    return false;
   }
 
   /**
