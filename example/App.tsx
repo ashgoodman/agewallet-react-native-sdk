@@ -13,8 +13,8 @@ import { AgeWallet } from 'agewallet-react-native-sdk/expo';
 // Initialize AgeWallet SDK
 // Replace 'your-client-id' with your actual client ID from AgeWallet dashboard
 const ageWallet = new AgeWallet({
-  clientId: 'your-client-id',
-  redirectUri: 'https://agewallet-react-sdk-demo.netlify.app/callback',
+  clientId: '239472f9-3398-47ea-ad13-fe9502a0eb33',
+  redirectUri: 'https://agewallet-sdk-demo.netlify.app/callback',
 });
 
 export default function App() {

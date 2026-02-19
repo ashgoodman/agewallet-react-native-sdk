@@ -68,7 +68,7 @@ export class AgeWalletCore {
     // Generate PKCE
     const verifier = this.security.generatePkceVerifier();
     const challenge = await this.security.generatePkceChallenge(verifier);
-    const state = this.security.generateState();
+    const state = `rn:${this.security.generateState()}`;
     const nonce = this.security.generateNonce();
 
     // Store OIDC state
