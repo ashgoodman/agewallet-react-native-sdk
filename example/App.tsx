@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   SafeAreaView,
-  ScrollView,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { AgeWallet } from 'agewallet-react-native-sdk/expo';
@@ -22,11 +21,6 @@ export default function App() {
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [debugLog, setDebugLog] = useState<string[]>([]);
-  const addLog = (msg: string) => {
-    const ts = new Date().toISOString().substring(11, 23);
-    setDebugLog((prev) => [...prev.slice(-9), `${ts} ${msg}`]);
-  };
 
   // Check verification status on mount
   useEffect(() => {
@@ -36,15 +30,9 @@ export default function App() {
   // Handle incoming URLs (for manual deep link handling if needed)
   useEffect(() => {
     const cleanup = ageWallet.addUrlListener(async (url) => {
-      addLog(`listener url: ${url.substring(0, 60)}`);
       if (url.includes('/callback')) {
         setIsVerifying(true);
-        try {
-          const result = await ageWallet.handleCallback(url);
-          addLog(`handleCallback: ${result}`);
-        } catch (e: unknown) {
-          addLog(`handleCallback ERR: ${e}`);
-        }
+        await ageWallet.handleCallback(url);
         await checkVerification();
         setIsVerifying(false);
       }
@@ -52,15 +40,9 @@ export default function App() {
 
     // Check if app was opened with a URL
     ageWallet.getInitialUrl().then(async (url) => {
-      addLog(`initialUrl: ${url ? url.substring(0, 60) : 'null'}`);
       if (url && url.includes('/callback')) {
         setIsVerifying(true);
-        try {
-          const result = await ageWallet.handleCallback(url);
-          addLog(`handleCallback(init): ${result}`);
-        } catch (e: unknown) {
-          addLog(`handleCallback(init) ERR: ${e}`);
-        }
+        await ageWallet.handleCallback(url);
         await checkVerification();
         setIsVerifying(false);
       }
@@ -146,14 +128,6 @@ export default function App() {
       <Text style={styles.footer}>
         This is a demo app for the AgeWallet React Native SDK.
       </Text>
-
-      {debugLog.length > 0 && (
-        <ScrollView style={styles.debugPanel}>
-          {debugLog.map((line, i) => (
-            <Text key={i} style={styles.debugLine}>{line}</Text>
-          ))}
-        </ScrollView>
-      )}
 
       <StatusBar style="auto" />
     </SafeAreaView>
@@ -255,17 +229,5 @@ const styles = StyleSheet.create({
     padding: 20,
     color: '#9ca3af',
     fontSize: 14,
-  },
-  debugPanel: {
-    backgroundColor: '#111',
-    maxHeight: 140,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  debugLine: {
-    color: '#0f0',
-    fontSize: 10,
-    fontFamily: 'monospace',
-    lineHeight: 14,
   },
 });
