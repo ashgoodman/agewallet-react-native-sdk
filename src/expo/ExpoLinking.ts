@@ -11,13 +11,13 @@ export class ExpoLinking implements ILinking {
    * Parses a URL and extracts OIDC callback parameters.
    */
   parseUrl(url: string): { code?: string; state?: string; error?: string; error_description?: string } {
-    const parsed = Linking.parse(url);
+    const params = new URL(url).searchParams;
 
     return {
-      code: parsed.queryParams?.code as string | undefined,
-      state: parsed.queryParams?.state as string | undefined,
-      error: parsed.queryParams?.error as string | undefined,
-      error_description: parsed.queryParams?.error_description as string | undefined,
+      code: params.get('code') ?? undefined,
+      state: params.get('state') ?? undefined,
+      error: params.get('error') ?? undefined,
+      error_description: params.get('error_description') ?? undefined,
     };
   }
 
