@@ -29,6 +29,7 @@
         <array>
           <string>agewallet-demo</string>
           <string>io.agewallet.sdk.demo.reactnative</string>
+          <string>agewallet-sdk-demo</string>
         </array>
       </dict>
     </array>
