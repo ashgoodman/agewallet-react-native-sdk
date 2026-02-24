@@ -17,7 +17,8 @@ export class ExpoBrowser implements IBrowser {
 
   /**
    * Opens an authentication session.
-   * On iOS: uses native ASWebAuthenticationSession via openAuthSessionAsync.
+   * On iOS: opens external Safari via Linking.openURL. Callback handled via
+   * Universal Links / custom URL scheme → URL listener in the app.
    * On Android: uses openBrowserAsync (fire-and-forget) + Linking listener,
    * because openAuthSessionAsync's JS polyfill unreliably races AppState vs
    * Linking events with HTTPS redirect URIs.
@@ -28,10 +29,7 @@ export class ExpoBrowser implements IBrowser {
       return this._openAuthSessionAndroid(url, redirectUri);
     }
 
-    const result = await WebBrowser.openAuthSessionAsync(url, redirectUri);
-    if (result.type === 'success' && result.url) {
-      return result.url;
-    }
+    await Linking.openURL(url);
     return null;
   }
 
