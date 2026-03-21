@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   SafeAreaView,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { AgeWallet } from 'agewallet-react-native-sdk/expo';
@@ -35,13 +36,22 @@ export default function App() {
 
   // Handle incoming URLs (for manual deep link handling if needed)
   useEffect(() => {
+    const handleResult = (result: string, tag: string) => {
+      addLog(`${tag}: ${result}`);
+      if (result === 'denied') {
+        Alert.alert('Verification Cancelled', 'Age verification was cancelled.');
+      } else if (result === 'failed') {
+        Alert.alert('Verification Failed', 'Verification could not be completed. Please try again.');
+      }
+    };
+
     const cleanup = ageWallet.addUrlListener(async (url) => {
       addLog(`listener url: ${url.substring(0, 60)}`);
       if (url.includes('/callback')) {
         setIsVerifying(true);
         try {
           const result = await ageWallet.handleCallback(url);
-          addLog(`handleCallback: ${result}`);
+          handleResult(result, 'handleCallback');
         } catch (e: unknown) {
           addLog(`handleCallback ERR: ${e}`);
         }
@@ -57,7 +67,7 @@ export default function App() {
         setIsVerifying(true);
         try {
           const result = await ageWallet.handleCallback(url);
-          addLog(`handleCallback(init): ${result}`);
+          handleResult(result, 'handleCallback(init)');
         } catch (e: unknown) {
           addLog(`handleCallback(init) ERR: ${e}`);
         }
@@ -79,8 +89,12 @@ export default function App() {
   const handleVerify = async () => {
     setIsVerifying(true);
     try {
-      await ageWallet.startVerification();
-      // With Expo, the callback is usually handled automatically
+      const result = await ageWallet.startVerification();
+      if (result === 'denied') {
+        Alert.alert('Verification Cancelled', 'Age verification was cancelled.');
+      } else if (result === 'failed') {
+        Alert.alert('Verification Failed', 'Verification could not be completed. Please try again.');
+      }
       await checkVerification();
     } catch (error) {
       console.error('Verification failed:', error);

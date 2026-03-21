@@ -42,6 +42,14 @@ export interface UserInfo {
   age_verified: boolean;
 }
 
+/**
+ * Result of an age verification callback.
+ * - 'success': Verification completed successfully
+ * - 'denied': User denied consent on the AgeWallet screen
+ * - 'failed': Verification process failed (identity check unsuccessful)
+ */
+export type AgeWalletResult = 'success' | 'denied' | 'failed';
+
 export const DEFAULT_ENDPOINTS: AgeWalletEndpoints = {
   auth: 'https://app.agewallet.io/user/authorize',
   token: 'https://app.agewallet.io/user/token',

@@ -24,7 +24,7 @@
  * ```
  */
 
-import { AgeWalletConfig } from '../core/types';
+import { AgeWalletConfig, AgeWalletResult } from '../core/types';
 import { AgeWalletCore } from '../core/AgeWalletCore';
 import { ExpoBrowser } from './ExpoBrowser';
 import { ExpoLinking } from './ExpoLinking';
@@ -51,8 +51,9 @@ export class AgeWallet {
    * Starts the verification flow.
    * Opens browser to AgeWallet authorization page.
    * With Expo's openAuthSessionAsync, the callback is usually handled automatically.
+   * @returns AgeWalletResult if the callback was handled automatically, null if handled via deep link
    */
-  async startVerification(): Promise<void> {
+  async startVerification(): Promise<AgeWalletResult | null> {
     return this.core.startVerification();
   }
 
@@ -61,9 +62,9 @@ export class AgeWallet {
    * Usually not needed with Expo as openAuthSessionAsync captures the callback.
    * Use this if handling deep links manually.
    * @param url - The callback URL with code and state
-   * @returns true if verification succeeded, false otherwise
+   * @returns AgeWalletResult indicating the outcome
    */
-  async handleCallback(url: string): Promise<boolean> {
+  async handleCallback(url: string): Promise<AgeWalletResult> {
     return this.core.handleCallback(url);
   }
 
@@ -92,4 +93,4 @@ export class AgeWallet {
 }
 
 // Re-export types for convenience
-export type { AgeWalletConfig } from '../core/types';
+export type { AgeWalletConfig, AgeWalletResult } from '../core/types';

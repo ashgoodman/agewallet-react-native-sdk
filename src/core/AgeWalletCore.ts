@@ -11,6 +11,7 @@ import { Storage } from './Storage';
 import {
   AgeWalletConfig,
   AgeWalletEndpoints,
+  AgeWalletResult,
   DEFAULT_ENDPOINTS,
   TokenResponse,
   UserInfo,
@@ -64,7 +65,7 @@ export class AgeWalletCore {
    * Starts the verification flow.
    * Opens browser to AgeWallet authorization page.
    */
-  async startVerification(): Promise<void> {
+  async startVerification(): Promise<AgeWalletResult | null> {
     // Generate PKCE
     const verifier = this.security.generatePkceVerifier();
     const challenge = await this.security.generatePkceChallenge(verifier);
@@ -91,37 +92,41 @@ export class AgeWalletCore {
     // Open auth session - may return callback URL directly
     const callbackUrl = await this.browser.openAuthSession(authUrl, this.config.redirectUri);
 
-    // If browser returned the callback URL, handle it
+    // If browser returned the callback URL, handle it and return the result
     if (callbackUrl) {
-      await this.handleCallback(callbackUrl);
+      return this.handleCallback(callbackUrl);
     }
+
+    return null;
   }
 
   /**
    * Handles the callback URL from the authorization flow.
    * @param url - The callback URL with code and state
-   * @returns true if verification succeeded, false otherwise
+   * @returns AgeWalletResult indicating the outcome
    */
-  async handleCallback(url: string): Promise<boolean> {
+  async handleCallback(url: string): Promise<AgeWalletResult> {
     const parsed = this.linking.parseUrl(url);
 
     // Handle errors
     if (parsed.error) {
       console.error(`[AgeWallet] Authorization error: ${parsed.error} - ${parsed.error_description}`);
       await this.storage.clearOidcState();
-      return false;
+      return parsed.error_description === 'The user denied the request' ? 'denied' : 'failed';
     }
 
     if (!parsed.code || !parsed.state) {
       console.error('[AgeWallet] Missing code or state in callback');
-      return false;
+      await this.storage.clearOidcState();
+      return 'failed';
     }
 
     // Validate state
     const storedState = await this.storage.getOidcState();
     if (!storedState || storedState.state !== parsed.state) {
       console.error('[AgeWallet] Invalid state or session expired');
-      return false;
+      await this.storage.clearOidcState();
+      return 'failed';
     }
 
     try {
@@ -133,7 +138,8 @@ export class AgeWalletCore {
 
       if (!userInfo.age_verified) {
         console.error('[AgeWallet] Age verification failed');
-        return false;
+        await this.storage.clearOidcState();
+        return 'failed';
       }
 
       // Store verification state
@@ -147,10 +153,11 @@ export class AgeWalletCore {
       // Clear OIDC state
       await this.storage.clearOidcState();
 
-      return true;
+      return 'success';
     } catch (error) {
       console.error('[AgeWallet] Token exchange failed:', error);
-      return false;
+      await this.storage.clearOidcState();
+      return 'failed';
     }
   }
 
