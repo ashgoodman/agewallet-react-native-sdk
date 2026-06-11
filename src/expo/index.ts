@@ -51,10 +51,26 @@ export class AgeWallet {
    * Starts the verification flow.
    * Opens browser to AgeWallet authorization page.
    * With Expo's openAuthSessionAsync, the callback is usually handled automatically.
+   * @param options.metadata - Optional per-call override; does NOT change the instance default.
    * @returns AgeWalletResult if the callback was handled automatically, null if handled via deep link
    */
-  async startVerification(): Promise<AgeWalletResult | null> {
-    return this.core.startVerification();
+  async startVerification(options: { metadata?: string } = {}): Promise<AgeWalletResult | null> {
+    return this.core.startVerification(options);
+  }
+
+  /**
+   * Update the metadata default attached to subsequent verifications.
+   * Pass undefined or null to clear. Throws if value exceeds 4096 bytes.
+   */
+  setMetadata(value: string | undefined | null): void {
+    this.core.setMetadata(value);
+  }
+
+  /**
+   * Return the metadata that round-tripped with the current persisted verification, or null.
+   */
+  async getMetadata(): Promise<string | null> {
+    return this.core.getMetadata();
   }
 
   /**

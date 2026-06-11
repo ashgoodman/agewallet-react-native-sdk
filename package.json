@@ -1,6 +1,6 @@
 {
   "name": "agewallet-react-native-sdk",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "AgeWallet age verification SDK for React Native",
   "main": "dist/expo/index.js",
   "types": "dist/expo/index.d.ts",
@@ -9,11 +9,6 @@
       "types": "./dist/expo/index.d.ts",
       "import": "./dist/expo/index.js",
       "require": "./dist/expo/index.js"
-    },
-    "./bare": {
-      "types": "./dist/bare/index.d.ts",
-      "import": "./dist/bare/index.js",
-      "require": "./dist/bare/index.js"
     }
   },
   "files": [

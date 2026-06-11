@@ -15,15 +15,20 @@ import {
   DEFAULT_ENDPOINTS,
   TokenResponse,
   UserInfo,
-  VerificationState,
 } from './types';
 
 export class AgeWalletCore {
-  private config: Required<AgeWalletConfig> & { endpoints: AgeWalletEndpoints };
+  /** Maximum byte length for the metadata string (matches server-side limit). */
+  static readonly METADATA_MAX_BYTES = 4096;
+
+  private config: { clientId: string; redirectUri: string; endpoints: AgeWalletEndpoints };
   private security: Security;
   private storage: Storage;
   private browser: IBrowser;
   private linking: ILinking;
+
+  /** Runtime metadata default; mutable via setMetadata(). Initialised from config.metadata. */
+  private currentMetadata: string | undefined;
 
   constructor(
     config: AgeWalletConfig,
@@ -46,6 +51,9 @@ export class AgeWalletCore {
       },
     };
 
+    this.validateMetadata(config.metadata);
+    this.currentMetadata = config.metadata;
+
     this.security = new Security();
     this.storage = new Storage();
     this.browser = browser;
@@ -62,10 +70,46 @@ export class AgeWalletCore {
   }
 
   /**
+   * Update the metadata default attached to subsequent verifications.
+   * Pass undefined to clear. Throws if value exceeds 4096 bytes.
+   */
+  setMetadata(value: string | undefined | null): void {
+    const normalized = value ?? undefined;
+    this.validateMetadata(normalized);
+    this.currentMetadata = normalized;
+  }
+
+  /**
+   * Return the metadata that round-tripped with the current persisted verification, or null.
+   */
+  async getMetadata(): Promise<string | null> {
+    const verification = await this.storage.getVerification();
+    return verification?.metadata ?? null;
+  }
+
+  private validateMetadata(value: string | undefined): void {
+    if (value === undefined || value === null) return;
+    if (typeof value !== 'string') {
+      throw new Error('[AgeWallet] metadata must be a string');
+    }
+    // UTF-8 byte length via the classic encodeURIComponent trick — portable across all JS runtimes.
+    const bytes = unescape(encodeURIComponent(value)).length;
+    if (bytes > AgeWalletCore.METADATA_MAX_BYTES) {
+      throw new Error(`[AgeWallet] metadata exceeds ${AgeWalletCore.METADATA_MAX_BYTES}-byte limit`);
+    }
+  }
+
+  /**
    * Starts the verification flow.
    * Opens browser to AgeWallet authorization page.
+   *
+   * @param options.metadata - Optional per-call override; does NOT change the instance default.
    */
-  async startVerification(): Promise<AgeWalletResult | null> {
+  async startVerification(options: { metadata?: string } = {}): Promise<AgeWalletResult | null> {
+    const effectiveMetadata = options.metadata ?? this.currentMetadata;
+    this.validateMetadata(effectiveMetadata);
+
+
     // Generate PKCE
     const verifier = this.security.generatePkceVerifier();
     const challenge = await this.security.generatePkceChallenge(verifier);
@@ -86,6 +130,10 @@ export class AgeWalletCore {
       code_challenge_method: 'S256',
       nonce,
     });
+
+    if (effectiveMetadata) {
+      params.append('metadata', effectiveMetadata);
+    }
 
     const authUrl = `${this.config.endpoints.auth}?${params.toString()}`;
 
@@ -142,12 +190,13 @@ export class AgeWalletCore {
         return 'failed';
       }
 
-      // Store verification state
+      // Store verification state (including any metadata round-tripped via /userinfo)
       const expiresAt = Date.now() + (tokenResponse.expires_in * 1000);
       await this.storage.setVerification({
         accessToken: tokenResponse.access_token,
         expiresAt,
         isVerified: true,
+        ...(userInfo.metadata ? { metadata: userInfo.metadata } : {}),
       });
 
       // Clear OIDC state
